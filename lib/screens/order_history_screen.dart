@@ -60,6 +60,20 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           _getPaymentBadge(order.paymentMethod),
                         ],
                       ),
+                      if (order.status == 'SHIPPING') ...[
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await ApiService.updateOrderStatus(order.id, 'RECEIVED');
+                              _fetchOrders();
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                            child: const Text('ĐÃ NHẬN ĐƯỢC HÀNG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   trailing: Text('${order.totalPrice.toInt()} đ', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
@@ -74,6 +88,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     Color color = Colors.grey;
     String text = status;
     if (status == 'PENDING') { color = Colors.orange; text = 'Chờ xử lý'; }
+    else if (status == 'PREPARING') { color = Colors.orange; text = 'Đang chuẩn bị'; }
     else if (status == 'SHIPPING') { color = Colors.blue; text = 'Đang giao'; }
     else if (status == 'RECEIVED') { color = Colors.green; text = 'Đã nhận'; }
     else if (status == 'CANCELLED') { color = Colors.red; text = 'Đã hủy'; }

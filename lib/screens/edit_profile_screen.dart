@@ -79,8 +79,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 30),
               
-              if (user.role == 'admin') ...[
-                const Text('Thông tin Ngân hàng (Đăng tin)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orange)),
+              if (user.role == 'admin' || user.role == 'seller') ...[
+                const Text('Thông tin Ngân hàng (Để nhận tiền)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orange)),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
                   value: _selectedBank,

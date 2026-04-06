@@ -45,6 +45,13 @@ public class OrderController {
         Map<String, String> userMap = new HashMap<>();
         userMap.put("username", order.getUser() != null ? order.getUser().getUsername() : "Khách");
         map.put("user", userMap);
+
+        // Thêm thông tin ngân hàng của Seller
+        if (order.getSeller() != null) {
+            map.put("sellerBankName", order.getSeller().getBankName());
+            map.put("sellerAccountNo", order.getSeller().getAccountNo());
+            map.put("sellerAccountHolder", order.getSeller().getAccountHolder());
+        }
         
         return map;
     }

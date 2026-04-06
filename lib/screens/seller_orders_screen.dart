@@ -74,10 +74,20 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                             const SizedBox(height: 5),
                             Row(
                               children: [
-                                const Text('Trạng thái cọc (qua Admin): ', style: TextStyle(fontSize: 12)),
+                                const Text('Trạng thái cọc (khách trả): ', style: TextStyle(fontSize: 12)),
                                 Text(
                                   order.isDepositPaid ? 'ĐÃ CỌC' : 'CHỜ CỌC',
                                   style: TextStyle(color: order.isDepositPaid ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            Row(
+                              children: [
+                                const Text('Tiền cọc (Admin trả Seller): ', style: TextStyle(fontSize: 12)),
+                                Text(
+                                  order.isSellerPaid ? 'ĐÃ NHẬN ✅' : 'CHỜ GIẢI NGÂN ⏳',
+                                  style: TextStyle(color: order.isSellerPaid ? Colors.blue : Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -85,14 +95,33 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
                           
                           const Divider(),
                           const Text('CẬP NHẬT TRẠNG THÁI GIAO HÀNG:', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                          const SizedBox(height: 5),
+                          
+                          // Thông báo cho Seller nếu chưa cọc
+                          if (order.paymentMethod == 'BANK' && !order.isDepositPaid && order.status == 'PENDING')
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text('ℹ️ Vui lòng chờ Admin xác nhận nhận tiền cọc của khách để bắt đầu xử lý.', 
+                                         style: TextStyle(fontSize: 11, color: Colors.orange, fontStyle: FontStyle.italic)),
+                            ),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              _statusAction('SHIPPING', 'Đang giao', Colors.blue, order.id),
-                              const SizedBox(width: 10),
-                              _statusAction('RECEIVED', 'Đã giao xong', Colors.green, order.id),
-                              const SizedBox(width: 10),
-                              _statusAction('CANCELLED', 'Hủy đơn', Colors.red, order.id),
+                              // Chỉ hiện "Chuẩn bị hàng" nếu đang PENDING và ĐÃ CỌC (hoặc không phải BANK)
+                              if (order.status == 'PENDING' && (order.paymentMethod != 'BANK' || order.isDepositPaid))
+                                _statusAction('PREPARING', 'Chuẩn bị hàng', Colors.orange, order.id),
+                              
+                              // Chỉ hiện "Đang giao" nếu đang ở bước PREPARING
+                              if (order.status == 'PREPARING') ...[
+                                _statusAction('SHIPPING', 'Đang giao', Colors.blue, order.id),
+                              ],
+                              
+                              // Chỉ cho phép hủy nếu chưa được giải ngân tiền
+                              if (!order.isSellerPaid && order.status != 'RECEIVED' && order.status != 'CANCELLED') ...[
+                                const SizedBox(width: 8),
+                                _statusAction('CANCELLED', 'Hủy đơn', Colors.red, order.id),
+                              ],
                             ],
                           ),
                         ],
@@ -106,14 +135,16 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen> {
 
   Widget _buildStatusBadge(String status) {
     Color color = Colors.grey;
-    if (status == 'SHIPPING') color = Colors.blue;
-    if (status == 'RECEIVED') color = Colors.green;
-    if (status == 'CANCELLED') color = Colors.red;
+    String label = status;
+    if (status == 'PREPARING') { color = Colors.orange; label = 'CHUẨN BỊ'; }
+    if (status == 'SHIPPING') { color = Colors.blue; label = 'ĐANG GIAO'; }
+    if (status == 'RECEIVED') { color = Colors.green; label = 'HOÀN TẤT'; }
+    if (status == 'CANCELLED') { color = Colors.red; label = 'ĐÃ HỦY'; }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5)),
-      child: Text(status, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 
